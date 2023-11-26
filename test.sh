@@ -5,7 +5,8 @@ template='
 #include <pthread.h>
 
 int testsResult = 0;
-pthread_mutex_t mutex; // Declare the mutex
+// Declare the mutex;
+pthread_mutex_t mutex; 
 
 
 // Function to run tests

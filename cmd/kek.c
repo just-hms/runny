@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "../pkg/math/math.h"
+#include "../pkg/repo/repo.h"
 
 int main()
 {
-    printf("%d\n", sum(2, 3));
-    printf("%d\n", diff(2, 3));
+    int res = login("kek", "kek", "kek");
+    printf("login res %d\n", res);
 }

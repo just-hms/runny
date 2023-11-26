@@ -5,14 +5,23 @@ CFLAGS :=
 # Define build directory
 BUILD_DIR := build
 
+
+# If the first argument is "run"... then set everything else as arguments
+ifeq (run,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "run"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 # List your source files
 SRC := $(shell find pkg -name '*.c' ! -name '*_test.c')
-MAIN_SRC := cmd/main.c
+CMD_SRC := $(shell find cmd -name '*.c')
 TEST_SRC := /tmp/test.c
 
 # Define corresponding object files in the build directory
 OBJ := $(SRC:%.c=$(BUILD_DIR)/%.o)
-MAIN_OBJ := $(MAIN_SRC:%.c=$(BUILD_DIR)/%.o)
+CMD_OBJ := $(CMD_SRC:%.c=$(BUILD_DIR)/%.o)
 TEST_OBJ := $(TEST_SRC:%.c=$(BUILD_DIR)/%.o)
 
 # Default target
@@ -34,15 +43,13 @@ $(TEST_OBJ): $(TEST_SRC)
 $(TEST_SRC):
 	@./test.sh > $(TEST_SRC)
 
-# Build target
-build: $(BUILD_DIR)/main
-
-$(BUILD_DIR)/main: $(OBJ) $(MAIN_OBJ)
-	@$(CC) $(CFLAGS) -o $@ $^
+# Build cmds target
+build: $(CMD_OBJ) $(OBJ)
+	@$(foreach cmd, $(CMD_OBJ), $(CC) $(CFLAGS) -o $(BUILD_DIR)/$(notdir $(cmd:.o=)) $(cmd) $(OBJ);)
 
 # Run target
-run: $(BUILD_DIR)/main
-	@$(BUILD_DIR)/main
+run: build
+	@$(BUILD_DIR)/$(RUN_ARGS)
 
 # General rule for object files
 $(BUILD_DIR)/%.o: %.c
