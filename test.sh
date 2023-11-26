@@ -8,23 +8,30 @@ int testsResult = 0;
 // Declare the mutex;
 pthread_mutex_t mutex; 
 
+typedef struct {
+    int (*testFunc)();
+    char *funcName;
+} TestStruct;
 
 // Function to run tests
 void *run_test(void *arg)
 {
-	int (*testFunc)() = arg; // Cast argument to a function pointer
-	int res = testFunc();
-	pthread_mutex_lock(&mutex); // Lock the mutex
-	testsResult = testsResult || res;
-	pthread_mutex_unlock(&mutex); // Unlock the mutex
+    TestStruct *test = (TestStruct *)arg; // Cast argument to TestStruct pointer
+    int res = test->testFunc();
+    pthread_mutex_lock(&mutex);
+    testsResult = testsResult || res;
+    pthread_mutex_unlock(&mutex);
 
-	printf("%-20s\t[%s]\n", "Test", (res == 0) ? "OK" : "FAILED");
-	return NULL;
+	if (res == 0) {
+        printf("%-20s\t[OK]\n", test->funcName);
+    } else {
+        fprintf(stderr, "\033[31m%-20s\t[FAILED]\033[0m\n", test->funcName);
+    }
+    return NULL;
 }
 
 #define NUM_TESTS {@NUM_TESTS}
 #define NUM_THREADS {@NUM_THREADS}
-
 
 {@INCLUDES}
 
@@ -33,13 +40,13 @@ int main()
 	pthread_t threads[NUM_THREADS];
 	pthread_mutex_init(&mutex, NULL); // Initialize the mutex	
 
-	int (*tests[NUM_TESTS])() = {{@TESTS}};
+	TestStruct tests[NUM_TESTS] = {{@TESTS}};
 	int threadIndex = 0;
 
 	// Create and join threads
 	for (int i = 0; i < NUM_TESTS; i++)
 	{
-		if (pthread_create(&threads[threadIndex], NULL, run_test, tests[i]))
+		if (pthread_create(&threads[threadIndex], NULL, run_test, &tests[i]))
 		{
 			fprintf(stderr, "Error creating thread\n");
 			return 1;
@@ -83,7 +90,7 @@ while IFS= read -r path; do
         # Check for function names
         if [[ "$line" =~ Test[a-zA-Z0-9_]+\(\) ]]; then
             s=$(echo "$line" | sed -e 's/int //' -e 's/().*//')
-            calls+=("$s")
+            calls+=("{$s,\"$s\"}")
         fi
     done < "$path"
 done < <(find . -type f -name '*_test.c')
