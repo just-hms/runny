@@ -4,11 +4,19 @@ template='
 #include <stdio.h>
 #include <pthread.h>
 
+int testsResult = 0;
+pthread_mutex_t mutex; // Declare the mutex
+
+
 // Function to run tests
 void *run_test(void *arg)
 {
 	int (*testFunc)() = arg; // Cast argument to a function pointer
 	int res = testFunc();
+	pthread_mutex_lock(&mutex); // Lock the mutex
+	testsResult = testsResult || res;
+	pthread_mutex_unlock(&mutex); // Unlock the mutex
+
 	printf("%-20s\t[%s]\n", "Test", (res == 0) ? "OK" : "FAILED");
 	return NULL;
 }
@@ -22,6 +30,7 @@ void *run_test(void *arg)
 int main()
 {
 	pthread_t threads[NUM_THREADS];
+	pthread_mutex_init(&mutex, NULL); // Initialize the mutex	
 
 	int (*tests[NUM_TESTS])() = {{@TESTS}};
 	int threadIndex = 0;
@@ -52,7 +61,8 @@ int main()
 		pthread_join(threads[i], NULL);
 	}
 
-	return 0;
+	pthread_mutex_destroy(&mutex); // Destroy the mutex after use
+	return testsResult;
 }
 '
 
