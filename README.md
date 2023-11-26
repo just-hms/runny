@@ -34,3 +34,9 @@ make run clean
 they behave exactly as you expected coming from `go`
 
 you can skip the build command, and everything works just fine
+
+
+# Known issues
+
+- if you change the name of a src file inside `cmd` a garbage executable will remain until `make clean` is called
+ 
