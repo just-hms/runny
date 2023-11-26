@@ -8,7 +8,7 @@ BUILD_DIR := build
 # List your source files
 SRC := $(shell find pkg -name '*.c' ! -name '*_test.c')
 MAIN_SRC := cmd/main.c
-TEST_SRC := /tmp/test.c
+TEST_SRC := build/test.c  # Updated path for test source file
 
 # Define corresponding object files in the build directory
 OBJ := $(SRC:%.c=$(BUILD_DIR)/%.o)

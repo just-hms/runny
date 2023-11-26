@@ -16,10 +16,8 @@ void *run_test(void *arg)
 #define NUM_TESTS {@NUM_TESTS}
 #define NUM_THREADS {@NUM_THREADS}
 
-#include "/home/just-hms/repos/alive/runny/pkg/dec/dec_test.c"
-#include "/home/just-hms/repos/alive/runny/pkg/repo/user_test.c"
-#include "/home/just-hms/repos/alive/runny/pkg/math/sum_test.c"
-#include "/home/just-hms/repos/alive/runny/pkg/math/diff_test.c"
+
+{@INCLUDES}
 
 int main()
 {
@@ -58,41 +56,41 @@ int main()
 }
 '
 
-# Main function
-main() {
-    local includes=()
-    local calls=()
+# Initialize arrays for includes and function calls
+includes=()
+calls=()
 
-    # Walking through directories and files
-    while IFS= read -r path; do
-        abs_path=$(realpath "$path")
+# Walking through directories and files
+while IFS= read -r path; do
+    abs_path=$(realpath "$path")
 
-        # Append to includes
-        includes+=("#include \"$abs_path\"")
+    # Append to includes
+    includes+=("#include \"$abs_path\"")
 
-        # Read lines from file
-        while IFS= read -r line; do
-            # Check for function names
-            if [[ "$line" =~ Test[a-zA-Z0-9_]+\(\) ]]; then
-                s=$(echo "$line" | sed -e 's/int //' -e 's/().*//')
-                calls+=("$s")
-            fi
-        done < "$path"
-    done < <(find . -type f -name '*_test.c')
+    # Read lines from file
+    while IFS= read -r line; do
+        # Check for function names
+        if [[ "$line" =~ Test[a-zA-Z0-9_]+\(\) ]]; then
+            s=$(echo "$line" | sed -e 's/int //' -e 's/().*//')
+            calls+=("$s")
+        fi
+    done < "$path"
+done < <(find . -type f -name '*_test.c')
 
-    # Replace placeholders in the template
-    local num_tests=${#calls[@]}
-    local num_threads=8
-    local tests=$(IFS=, ; echo "${calls[*]}")
+# Replace placeholders in the template
+num_tests=${#calls[@]}
+num_threads=8
+tests=$(IFS=, ; echo "${calls[*]}")
+includes=$(IFS=$'\n' ; echo "${includes[*]}")
 
-    # Update the template
-    template=${template//'{@NUM_TESTS}'/$num_tests}
-    template=${template//'{@NUM_THREADS}'/$num_threads}
-    template=${template//'{@TESTS}'/$tests}
-    
-    echo "$template" | while IFS= read -r line; do
-        echo "$line"
-    done
-}
+# Update the template
+template=${template//'{@NUM_TESTS}'/$num_tests}
+template=${template//'{@NUM_THREADS}'/$num_threads}
+template=${template//'{@TESTS}'/$tests}
+template=${template//'{@INCLUDES}'/$includes}
 
-main
+# Print the updated template
+echo "$template" | while IFS= read -r line; do
+    echo "$line"
+done
+
