@@ -25,7 +25,7 @@ done < <(find . -type f -name '*_test.c')
 
 # Replace placeholders in the template
 num_tests=${#calls[@]}
-num_threads=2
+num_threads=8
 tests=$(IFS=, ; echo "${calls[*]}")
 includes=$(IFS=$'\n' ; echo "${includes[*]}")
 
