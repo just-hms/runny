@@ -23,7 +23,7 @@ char *fmt_Sprintf(const char *format, ...)
     va_end(args);
 
     // Allocate memory for the string
-    char *result = malloc(length + 1); // +1 for the null terminator
+    char *result = (char *)malloc(length + 1); // +1 for the null terminator
     if (!result)
     {
         return NULL;
