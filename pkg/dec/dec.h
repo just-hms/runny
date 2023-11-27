@@ -1,3 +1,3 @@
 #pragma once
 
-int dec();
+int dec(int i);

@@ -10,14 +10,15 @@ You must follow this project structure to make everything work:
 - `pkg` folder containing the libraries used in the executables
 - ⚠️ don't ever include directly `.c` files
 
+> you can use a different project structure, but in that case the make file needs to be changed
 
 ### tests
 
 - ⚠️ write the tests inside the `pkg` folder 
-- ⚠️ named them `***_test.c`
+- ⚠️ name them `***_test.c`
 - ⚠️ name the test function `int Test***()`
 
-> the tests are launched using `pthread` so make sure they don't overlap or use common resources`
+> the tests are launched using `pthread` so make sure they don't overlap or use common resources
 
 ## Commands
 
