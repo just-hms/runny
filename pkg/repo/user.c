@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../error.h"
+#include "error.h"
 
 int signup(char *path, char *username, char *password)
 {
