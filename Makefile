@@ -1,6 +1,6 @@
 # Define your compiler and flags
 CC := gcc
-CFLAGS :=
+CFLAGS := -g
 
 # Define build directory
 BUILD_DIR := build
@@ -22,6 +22,7 @@ TEST_SRC := /tmp/test.c
 # Define corresponding object files in the build directory
 OBJ := $(SRC:%.c=$(BUILD_DIR)/%.o)
 CMD_OBJ := $(CMD_SRC:%.c=$(BUILD_DIR)/%.o)
+CMD_EXE = $(CMD_SRC:cmd/%.c=$(BUILD_DIR)/%)
 TEST_OBJ := $(TEST_SRC:%.c=$(BUILD_DIR)/%.o)
 
 # Default target
@@ -43,18 +44,22 @@ $(TEST_OBJ): $(TEST_SRC)
 $(TEST_SRC):
 	@./test.sh > $(TEST_SRC)
 
-# Build cmds target
-build: $(CMD_OBJ) $(OBJ)
-	@$(foreach cmd, $(CMD_OBJ), $(CC) $(CFLAGS) -o $(BUILD_DIR)/$(notdir $(cmd:.o=)) $(cmd) $(OBJ);)
+$(BUILD_DIR)/libpkg.a: $(OBJ)
+	ar rcs $@ $^
+
+$(BUILD_DIR)/%: cmd/%.o $(BUILD_DIR)/libpkg.a
+	$(CC) $(CFLAGS) $^ -o $@
+
+build: $(CMD_EXE)
 
 # Run target
-run: build
-	@$(BUILD_DIR)/$(RUN_ARGS)
+#run: build
+#	@$(BUILD_DIR)/$(RUN_ARGS)
 
 # General rule for object files
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean target to remove generated files
 clean:
