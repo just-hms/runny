@@ -1,6 +1,8 @@
 # Define your compiler and flags
 CC := gcc
 CFLAGS := -g
+CFLAGS_DEP = -MD
+CFLAGS_TOT = $(CFLAGS_DEP) $(CFLAGS)
 
 # Define build directory
 BUILD_DIR := build
@@ -23,7 +25,7 @@ TEST_SRC := /tmp/test.c
 OBJ := $(SRC:%.c=$(BUILD_DIR)/%.o)
 CMD_OBJ := $(CMD_SRC:%.c=$(BUILD_DIR)/%.o)
 CMD_EXE = $(CMD_SRC:cmd/%.c=$(BUILD_DIR)/%)
-TEST_OBJ := $(TEST_SRC:%.c=$(BUILD_DIR)/%.o)
+TEST_OBJ := $(BUILD_DIR)/test.o # $(TEST_SRC:/%.c=$(BUILD_DIR)/%.o)
 
 # Default target
 all: test build run
@@ -33,12 +35,13 @@ test: $(BUILD_DIR)/test
 	@$(BUILD_DIR)/test
 
 # Rule to generate test.c and compile it into an object file
-$(BUILD_DIR)/test: $(OBJ) $(TEST_OBJ)
-	@$(CC) $(CFLAGS) -o $@ $^
+$(BUILD_DIR)/test: $(TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
 
-$(TEST_OBJ): $(TEST_SRC)
+$(TEST_OBJ): $(TEST_SRC) $(BUILD_DIR)/libpkg.a
+	echo $< $@
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS_TOT) -c $< -o $@
 
 # Rule to run test.sh and generate test.c
 $(TEST_SRC):
@@ -48,9 +51,9 @@ $(BUILD_DIR)/libpkg.a: $(OBJ)
 	ar rcs $@ $^
 
 $(BUILD_DIR)/%: cmd/%.o $(BUILD_DIR)/libpkg.a
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS_TOT) $^ -o $@
 
-build: $(CMD_EXE)
+build: $(CMD_EXE) # $(BUILD_DIR)/test @FIXME TEST NOT WORKING ATM
 
 # Run target
 #run: build
@@ -59,10 +62,12 @@ build: $(CMD_EXE)
 # General rule for object files
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS_TOT) -c $< -o $@
 
 # Clean target to remove generated files
 clean:
 	@rm -rf $(BUILD_DIR) $(TEST_SRC)
 
 .PHONY: all test build run clean $(TEST_OBJ) $(BUILD_DIR)/test
+
+-include $(OBJ:.o=.d)
