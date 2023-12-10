@@ -25,7 +25,7 @@ TEST_SRC := /tmp/test.c
 OBJ := $(SRC:%.c=$(BUILD_DIR)/%.o)
 CMD_OBJ := $(CMD_SRC:%.c=$(BUILD_DIR)/%.o)
 CMD_EXE = $(CMD_SRC:cmd/%.c=$(BUILD_DIR)/%)
-TEST_OBJ := $(BUILD_DIR)/test.o # $(TEST_SRC:/%.c=$(BUILD_DIR)/%.o)
+#TEST_OBJ := $(BUILD_DIR)/test.o # $(TEST_SRC:/%.c=$(BUILD_DIR)/%.o)
 
 # Default target
 all: test build run
@@ -35,15 +35,11 @@ test: $(BUILD_DIR)/test
 	@$(BUILD_DIR)/test
 
 # Rule to generate test.c and compile it into an object file
-$(BUILD_DIR)/test: $(TEST_OBJ)
+$(BUILD_DIR)/test: $(TEST_SRC) $(BUILD_DIR)/libpkg.a
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(TEST_OBJ): $(TEST_SRC) $(BUILD_DIR)/libpkg.a
-	echo $< $@
-	@mkdir -p $(@D)
-	$(CC) $(CFLAGS_TOT) -c $< -o $@
-
 # Rule to run test.sh and generate test.c
+# @FIXME this will trigger a re-compilation each time
 $(TEST_SRC):
 	@./test.sh > $(TEST_SRC)
 
